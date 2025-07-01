@@ -18,64 +18,115 @@ chrome.webNavigation.onCompleted.addListener(({ tabId, frameId }) => {
 });
 
 const newPageLoad = async () => {
-    let fields = document.getElementsByTagName("input");
-    const size = fields.length;
-    for (let i = 0; i < size; i++) {
-        const input = fields[i];
+  const { passwords = [] } = await chrome.storage.sync.get("passwords");
+  const pagePassword = passwords.find(pwd => pwd.url === location.origin);
+  let savedEmail = pagePassword ? (pagePassword.email || pagePassword.username || "") : "";
+  let savedPassword = pagePassword ? pagePassword.password || "" : "";
 
-        if(input.type !== "password") continue;
+  let fields = document.getElementsByTagName("input");
+  const size = fields.length;
 
-        const { passwords } = await chrome.storage.sync.get("passwords");
-        const pagePassword = passwords.find(pwd => pwd.url === location.origin);
+  for (let i = 0; i < size; i++) {
+    const input = fields[i];
 
-        if(pagePassword !== undefined) {
-            input.value = pagePassword.password;
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-            input.dispatchEvent(new Event('change', { bubbles: true }));
-        }else {
-            const container = document.createElement("div");
+    if (input.type === "email" ||
+      (input.type === "text" && input.id === "email") ||
+      (input.type === "text" && input.name === "email") ||
+      input.type.includes("user") ||
+      (input.type === "text" && input.id.includes("user")) ||
+      (input.type === "text" && input.name.includes("user"))
+    ) {
+      if (savedEmail) {
+        input.value = savedEmail;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      } else {
+        if (document.getElementById("addCredentialsPopup")) continue;
 
-            const fieldInput = document.createElement("input");
-            fieldInput.type = "text";
+        const container = document.createElement("div");
+        container.id = "addCredentialsPopup";
+        Object.assign(container.style, {
+          position: "absolute",
+          top: (input.getBoundingClientRect().bottom + window.scrollY) + "px",
+          left: (input.getBoundingClientRect().left + window.scrollX) + "px",
+          background: "#fff",
+          border: "1px solid #ccc",
+          padding: "8px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+          zIndex: "1000",
+          borderRadius: "5px",
+          display: "flex",
+          gap: "5px",
+          alignItems: "center",
+        });
 
-            const btnSubmit = document.createElement("button");
-            btnSubmit.textContent = "Save Password";
-            btnSubmit.addEventListener("click", async () => {
-                const { passwords } = await chrome.storage.sync.get("passwords") || { passwords: [] };
-                
-                const index = passwords.findIndex(pwd => pwd.url === location.origin);
-                if(index !== -1) {
-                    passwords[index].password = fieldInput.value;
-                }else{
-                passwords.push({ password: fieldInput.value, url: location.origin });
-                }
+        const emailInput = document.createElement("input");
+        emailInput.type = "text";
+        emailInput.placeholder = "Enter email/user";
+        emailInput.style.flex = "1";
 
-                chrome.storage.sync.set({ passwords }, () => {
-                    console.log("Password saved!");
-                });
-                input.value = fieldInput.value;
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-                input.dispatchEvent(new Event('change', { bubbles: true }));
-                container.remove();
-            });
+        const passwordInput = document.createElement("input");
+        passwordInput.type = "password";
+        passwordInput.placeholder = "Enter password";
+        passwordInput.style.flex = "1";
 
+        const btnSave = document.createElement("button");
+        btnSave.textContent = "Save";
+        btnSave.addEventListener("click", async () => {
+          const emailVal = emailInput.value.trim();
+          const passwordVal = passwordInput.value.trim();
+          if (!emailVal || !passwordVal) return;
 
-            const btnGenerate = document.createElement("button");
-            btnGenerate.textContent = "Generate Password";
-            btnGenerate.addEventListener("click", () => {
-                
-            });
+          const { passwords = [] } = await chrome.storage.sync.get("passwords");
+          const index = passwords.findIndex(pwd => pwd.url === location.origin);
 
-            container.appendChild(fieldInput);
-            container.appendChild(btnSubmit);
-            container.appendChild(btnGenerate);
-            document.body.appendChild(container);
+          if (index !== -1) {
+            passwords[index].email = emailVal;
+            passwords[index].username = emailVal;
+            passwords[index].password = passwordVal;
+          } else {
+            passwords.push({ url: location.origin, email: emailVal, username: emailVal, password: passwordVal });
+          }
 
-            const rect = input.getBoundingClientRect();
-            container.style.position = "absolute";
-            container.style.top = (rect.bottom + window.scrollY) + "px";
-            container.style.left = (rect.left + window.scrollX) + "px";
-            container.style.zIndex = "9999";
-        }
+          await chrome.storage.sync.set({ passwords });
+          input.value = emailVal;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+
+          for (let j = 0; j < size; j++) {
+            const inp = fields[j];
+            if (inp.type === "password") {
+              inp.value = passwordVal;
+              inp.dispatchEvent(new Event('input', { bubbles: true }));
+              inp.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+          }
+
+          container.remove();
+        });
+
+        const btnGenerate = document.createElement("button");
+        btnGenerate.textContent = "Generate Password";
+        btnGenerate.addEventListener("click", () => {
+          const generated = crypto.randomUUID().replace(/-/g, "").slice(0, 12);
+          passwordInput.value = generated;
+        });
+
+        container.appendChild(emailInput);
+        container.appendChild(passwordInput);
+        container.appendChild(btnGenerate);
+        container.appendChild(btnSave);
+        document.body.appendChild(container);
+      }
+      continue;
     }
+
+    if (input.type !== "password") continue;
+
+    if (savedPassword) {
+      input.value = savedPassword;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }
 };
