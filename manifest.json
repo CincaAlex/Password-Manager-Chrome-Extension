@@ -1,0 +1,22 @@
+{
+  "name": "Hello World",
+  "description": "Hi!",
+  "version": "1.0",
+  "manifest_version": 3,
+  "permissions": [
+    "storage",
+    "scripting",
+    "webNavigation",
+    "tabs"
+  ],
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": "hello.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "<all_urls>"
+  ]
+}
