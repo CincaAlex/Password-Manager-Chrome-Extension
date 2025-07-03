@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Saved Passwords</title>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Saved Passwords</title>
+  <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
-    <h1>Saved Passwords</h1>
-    <div>
-        <button id = "addPasswordBtn">Add new password</button> 
-    </div>
-    <div id="passwordsDiv"></div>
-    <script src="popup.js"></script>
+  <h1>Saved Passwords</h1>
+  <div>
+    <button id="addPasswordBtn" aria-label="Add new password">Add New Password</button>
+  </div>
+  <div id="passwordsDiv" aria-live="polite" aria-relevant="additions"></div>
+
+  <script src="js/popup.js"></script>
 </body>
 </html>

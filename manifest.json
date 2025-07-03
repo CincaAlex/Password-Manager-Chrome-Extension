@@ -1,23 +1,30 @@
 {
-  "name": "Hello World",
-  "description": "Hi!",
-  "version": "1.0",
+  "name": "Password Manager",
+  "description": "Auto-fills login forms with saved credentials and offers strong password generation directly on the page(no data security).",
+  "version": "0.1",
   "manifest_version": 3,
   "permissions": [
     "storage",
     "scripting",
     "webNavigation",
     "tabs",
-    "activeTab"
+    "activeTab",
+    "idle"
   ],
   "action": {
     "default_popup": "index.html",
-    "default_icon": "hello.png"
+    "default_icon": "logo.png"
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "js/background.js"
   },
   "host_permissions": [
     "<all_urls>"
+  ],"content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["js/content.js"],
+      "run_at": "document_idle"
+    }
   ]
 }

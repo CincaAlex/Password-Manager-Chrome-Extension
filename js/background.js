@@ -16,46 +16,45 @@ chrome.webNavigation.onCompleted.addListener(({ tabId, frameId }) => {
 });
 
 const newPageLoad = async () => {
-  function getRandomChar(str) {
-    const index = Math.floor(Math.random() * str.length);
-    return str.charAt(index);
-}
-
-
-
-function generatePassword(length, useSymbol) {
-    const lowercase = "abcdefghijklmnopqrstuvwxyz";
-    const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const digits = "0123456789";
-    const symbols = "!@#$%^&*()-_=+[]{};:,.<>?";
-
-    let generatedPassword = [
-        getRandomChar(lowercase),
-        getRandomChar(uppercase),
-        getRandomChar(digits)
-    ];
-
-    let all = lowercase + uppercase + digits;
-    length -= 3;
-
-    if (useSymbol) {
-        generatedPassword.push(getRandomChar(symbols));
-        all += symbols;
-        length--;
+    function getRandomChar(str) {
+        const index = Math.floor(Math.random() * str.length);
+        return str.charAt(index);
     }
 
-    while (length > 0) {
-        generatedPassword.push(getRandomChar(all));
-        length--;
+    function generatePassword(length, useSymbol) {
+        const lowercase = "abcdefghijklmnopqrstuvwxyz";
+        const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const digits = "0123456789";
+        const symbols = "!@#$%^&*()-_=+[]{};:,.<>?";
+
+        let generatedPassword = [
+            getRandomChar(lowercase),
+            getRandomChar(uppercase),
+            getRandomChar(digits)
+        ];
+
+        let all = lowercase + uppercase + digits;
+        length -= 3;
+
+        if (useSymbol) {
+            generatedPassword.push(getRandomChar(symbols));
+            all += symbols;
+            length--;
+        }
+
+        while (length > 0) {
+            generatedPassword.push(getRandomChar(all));
+            length--;
+        }
+
+        for (let i = generatedPassword.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [generatedPassword[i], generatedPassword[j]] = [generatedPassword[j], generatedPassword[i]];
+        }
+
+        return generatedPassword.join('');
     }
 
-    for (let i = generatedPassword.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [generatedPassword[i], generatedPassword[j]] = [generatedPassword[j], generatedPassword[i]];
-    }
-
-    return generatedPassword.join('');
-}
     const { passwords = [] } = await chrome.storage.sync.get("passwords");
     const pagePassword = passwords.find(pwd => pwd.url === location.origin);
     let savedEmail = pagePassword ? (pagePassword.email || pagePassword.username || "") : "";
@@ -67,7 +66,8 @@ function generatePassword(length, useSymbol) {
     for (let i = 0; i < size; i++) {
         const input = fields[i];
 
-        if (input.type === "email" ||
+        if (
+            input.type === "email" ||
             (input.type === "text" && input.id === "email") ||
             (input.type === "text" && input.name === "email") ||
             input.type.includes("user") ||
@@ -110,7 +110,7 @@ function generatePassword(length, useSymbol) {
 
                 const strongPassword = document.createElement("input");
                 strongPassword.type = "checkbox";
-                strongPassword.id = "strongPasswordCheck"
+                strongPassword.id = "strongPasswordCheck";
 
                 const strongPasswordLabel = document.createElement("label");
                 strongPasswordLabel.htmlFor = "strongPasswordCheck";
@@ -123,26 +123,26 @@ function generatePassword(length, useSymbol) {
                     const passwordVal = passwordInput.value.trim();
                     if (!emailVal || !passwordVal) return;
 
-                    if(passwordVal.length < 8){
-                      alert("Please enter a valid number of characters (at least 8).");
-                      return;
+                    if (passwordVal.length < 8) {
+                        alert("Please enter a valid number of characters (at least 8).");
+                        return;
                     }
 
-                    if(strongPassword.checked){
-                      if (!/[A-Z]/.test(passwordVal)){
-                      alert("Please include at least one uppercase letter in your password.");
-                      return;
-                      }
+                    if (strongPassword.checked) {
+                        if (!/[A-Z]/.test(passwordVal)) {
+                            alert("Please include at least one uppercase letter in your password.");
+                            return;
+                        }
 
-                      if(!/[0-9]/.test(passwordVal)){
-                        alert("Please include at least one number in your password.");
-                        return;
-                      }
+                        if (!/[0-9]/.test(passwordVal)) {
+                            alert("Please include at least one number in your password.");
+                            return;
+                        }
 
-                      if(!/[!@#$%^&*(),.?":{}|<>]/.test(passwordVal)){
-                        alert("Please include at least one special character in your password.");
-                        return;
-                      }
+                        if (!/[!@#$%^&*(),.?\":{}|<>]/.test(passwordVal)) {
+                            alert("Please include at least one special character in your password.");
+                            return;
+                        }
                     }
 
                     const { passwords = [] } = await chrome.storage.sync.get("passwords");
